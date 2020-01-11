@@ -1,6 +1,11 @@
 language: generic
-os:
-  - linux
+
+jobs:
+  include:
+    - os: linux
+      dist: bionic
+      services:
+        - xvfb
 
 env:
   global:
@@ -34,7 +39,7 @@ install:
 script:
   - conda activate testenv
   - python clean-ipnb.py ./notebooks stripview
-  - pytest -v --nb-test-files --nb-exec-timeout=30
+  - xvfb-run -a pytest -v --nb-test-files --nb-exec-timeout=30
 
 deploy:
   - provider: script
