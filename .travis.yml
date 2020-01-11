@@ -43,7 +43,8 @@ script:
 
 deploy:
   - provider: script
-    script: clean_and_push.sh
+    script:
+      - clean_and_push.sh
     # on:
     #   branch: master
     on:

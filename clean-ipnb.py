@@ -14,6 +14,7 @@ Use case:
 import json
 import logging
 import pathlib
+import re
 import shutil
 from pprint import pprint
 from typing import Dict
@@ -50,15 +51,52 @@ def stripview(config):
     """
     files = config["files"]
     make_backup(files)
-    for file in files:
-        _strip_view(file)
+    mod_files(files, _strip_view)
 
 
 @cli.command()
 @click.pass_obj
 def delcode(config):
     """Remove all code in cells, except %load magic"""
-    pass
+    files = config["files"]
+    make_backup(files)
+    mod_files(files, _delcode)
+
+
+def _delcode(in_file):
+    with open(in_file, "r") as f:
+        content = json.load(f)
+
+    cells = content["cells"]
+    new_cells = []
+    for cell in cells:
+        new_cells.append(clean_cells(cell))
+
+    content["cells"] = new_cells
+    with open(in_file, "w") as f:
+        json.dump(content, f, indent=1)
+        f.write("\n")
+
+
+def clean_cells(cell: Dict):
+    if cell["cell_type"] != "code":
+        return cell
+
+    keepers = [re.compile("^\%load ")]
+
+    new_lines = []
+    for line in cell["source"]:
+        if any(x.match(line) for x in keepers):
+            new_lines.append(line)
+
+    cell["source"] = new_lines
+    cell["outputs"] = []
+    return cell
+
+
+def mod_files(files, func):
+    for file in files:
+        func(file)
 
 
 def _strip_view(in_file):
