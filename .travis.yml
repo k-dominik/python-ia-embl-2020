@@ -30,6 +30,12 @@ install:
   - conda activate testenv
   - conda install -c conda-forge pytest-notebook
 
+
+script:
+  - conda activate testenv
+  - python clean-ipnb.py ./notebooks stripview
+  - pytest -v --nb-test-files --nb-exec-timeout=30
+
 deploy:
   - provider: script
     script: clean_and_push.sh
