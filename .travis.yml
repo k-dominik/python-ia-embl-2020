@@ -28,6 +28,7 @@ install:
   - conda info -a
   - conda create -q -n testenv anaconda
   - conda activate testenv
+  - conda install -c conda-forge pytest-notebook
 
 deploy:
   - provider: script
