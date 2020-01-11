@@ -38,17 +38,21 @@ install:
 
 script:
   - conda activate testenv
-  - python clean-ipnb.py ./notebooks stripview
+  - python clean-ipnb.py ./notebooks prepare4test
   - xvfb-run -a pytest -v --nb-test-files --nb-exec-timeout=30
 
 deploy:
-  - provider: script
-    script:
-      - git clean --force
-      - python clean-ipnb.py ./notebooks delcode
-      - git diff
-    # on:
-    #   branch: master
-    on:
-      all_branches: true
+  provider: script
+  script:
+    - git clean --force
+    - python clean-ipnb.py ./notebooks delcode
+    - git diff
+    - git add .
+    - git commit -m "deploy"
+    - git remote add deploy https://${GITHUB_TOKEN}@github.com/k-dominik/python-ia-embl-2020.git
+    - git push --force deploy course-material
+  # on:
+  #   branch: master
+  on:
+    all_branches: true
 
