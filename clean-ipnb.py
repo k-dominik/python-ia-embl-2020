@@ -45,6 +45,16 @@ def cli(ctx, notebook, verbose):
 
 @cli.command()
 @click.pass_obj
+def restore(config):
+    files = config["files"]
+    backups = [gen_bkup_filename(x) for x in files]
+    for backup, modified in zip(backups, files):
+        shutil.copy(backup, modified)
+        logger.debug(f"restored {modified} from {backup}")
+
+
+@cli.command()
+@click.pass_obj
 def stripview(config):
     """Remove all calls to `viewer.show()`
 
