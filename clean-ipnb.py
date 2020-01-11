@@ -55,13 +55,59 @@ def restore(config):
 
 @cli.command()
 @click.pass_obj
-def stripview(config):
-    """Remove all calls to `viewer.show()`
+def prepare4test(config):
+    """Prepare notebooks for testing
 
+    * execute automagic %load
+    * Remove all calls to `viewer.show()`
     """
     files = config["files"]
     make_backup(files)
+    mod_files(files, _magic_load)
     mod_files(files, _strip_view)
+
+
+def _magic_load(in_file):
+    with open(in_file, "r") as f:
+        content = json.load(f)
+
+    cells = content["cells"]
+
+    new_cells = []
+    for cell in cells:
+        new_cells.append(exec_autoload(cell, in_file))
+
+    content["cells"] = new_cells
+    with open(in_file, "w") as f:
+        json.dump(content, f, indent=1)
+        f.write("\n")
+
+
+def exec_autoload(cell, in_file):
+    if cell["cell_type"] != "code":
+        return cell
+    find_magic_load = re.compile("^\%load[ ]+(?P<filename>.+)\n?")
+    new_lines = []
+    for line in cell["source"]:
+
+        m = find_magic_load.match(line)
+        if m is not None:
+            wkdir = in_file.parent
+            file_to_load = wkdir / m.groupdict()["filename"]
+            with open(file_to_load, "r") as f:
+                content = f.readlines()
+            if not line.endswith("\n"):
+                line = line + "\n"
+            line = f"# {line}"
+            new_lines.append(line)
+            new_lines.extend(content)
+        else:
+            new_lines.append(line)
+
+    cell["source"] = new_lines
+
+    return cell
+
 
 
 @cli.command()
