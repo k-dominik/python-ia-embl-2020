@@ -44,7 +44,9 @@ script:
 deploy:
   - provider: script
     script:
-      - clean_and_push.sh
+      - git clean --force
+      - python clean-ipnb.py ./notebooks delcode
+      - git diff
     # on:
     #   branch: master
     on:
