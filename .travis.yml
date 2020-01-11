@@ -1,0 +1,39 @@
+language: generic
+os:
+  - linux
+
+env:
+  global:
+    - CONDA_ROOT=$HOME/miniconda
+    - MINICONDA=https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+
+cache:
+  directories:
+    - CONDA_ROOT
+
+install:
+  - sudo apt-get update
+  - if [[ ! -d ${CONDA_ROOT} ]]; then
+      echo "Installing Miniconda...";
+      wget $MINICONDA -O miniconda.sh &&
+      bash miniconda.sh -b -p ${CONDA_ROOT};
+    else
+      echo "Using cached Miniconda install";
+    fi
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+  - conda create -q -n testenv anaconda
+  - conda activate testenv
+
+deploy:
+  - provider: script
+    script: clean_and_push.sh
+    # on:
+    #   branch: master
+    on:
+      all_branches: true
+
