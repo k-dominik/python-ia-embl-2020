@@ -10,12 +10,10 @@ cache:
   directories:
     - CONDA_ROOT
 
-
-os:
-  - linux
-    dist: bionic
-    services:
-      - xvfb
+os: linux
+dist: bionic
+services:
+  - xvfb
 
 stages:
   - regression-test
