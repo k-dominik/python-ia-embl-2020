@@ -15,11 +15,6 @@ dist: bionic
 services:
   - xvfb
 
-stages:
-  - regression-test
-  - deploy-clean
-
-
 install:
   - sudo apt-get update
   - if [[ ! -d ${CONDA_ROOT} ]]; then
@@ -60,8 +55,5 @@ deploy:
   provider: pages
   target_branch: course-material
   github_token: $GITHUB_TOKEN
-  # on:
-  #   branch: master
   on:
-    all_branches: true
-
+    branch: master
