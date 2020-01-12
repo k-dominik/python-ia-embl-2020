@@ -1,6 +1,6 @@
 
-import skimage
 import numpy as np
+import skimage
 from skimage.viewer import ImageViewer
 
 # the image to mask
@@ -12,4 +12,4 @@ viewer = ImageViewer(image)
 viewer.show()
 
 # YOUR CODE HERE
-mask = ____
+# mask = ____
