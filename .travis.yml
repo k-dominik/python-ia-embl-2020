@@ -1,20 +1,26 @@
 language: generic
 
-jobs:
-  include:
-    - os: linux
-      dist: bionic
-      services:
-        - xvfb
-
 env:
   global:
     - CONDA_ROOT=$HOME/miniconda
     - MINICONDA=https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
 
+
 cache:
   directories:
     - CONDA_ROOT
+
+
+os:
+  - linux
+    dist: bionic
+    services:
+      - xvfb
+
+stages:
+  - regression-test
+  - deploy-clean
+
 
 install:
   - sudo apt-get update
@@ -35,24 +41,32 @@ install:
   - conda activate testenv
   - conda install -c conda-forge pytest-notebook
 
+jobs:
+  include:
+    - stage: regression-test
+      name: "Run notebooks - no checking of output is done."
+      script:
+        - conda activate testenv
+        - python clean-ipnb.py ./notebooks prepare4test
+        - xvfb-run -a pytest -v --nb-test-files --nb-exec-timeout=30
 
-script:
-  - conda activate testenv
-  - python clean-ipnb.py ./notebooks prepare4test
-  - xvfb-run -a pytest -v --nb-test-files --nb-exec-timeout=30
-
-deploy:
-  provider: script
-  script:
-    - git clean --force
-    - python clean-ipnb.py ./notebooks delcode
-    - git diff
-    - git add .
-    - git commit -m "deploy"
-    - git remote add deploy https://${GITHUB_TOKEN}@github.com/k-dominik/python-ia-embl-2020.git
-    - git push --force deploy course-material
-  # on:
-  #   branch: master
-  on:
-    all_branches: true
+    - stage: deploy-clean
+      name: "Remove code from notebooks, remove unnecessary files, deploy to github"
+      script:
+        - ls
+        - conda activate -n testenv
+        - python clean-ipnb.py ./notebooks delcode
+        - git clean --force
+        - find . -maxdepth 1 -type f -exec rm -iv {} \;
+        - cp deploy/* .
+        - git add .
+        - git commit -m "cleanup for deploy"
+        - git log
+      deploy:
+        provider: pages
+        target_branch: course-material
+        # on:
+        #   branch: master
+        on:
+          all_branches: true
 
