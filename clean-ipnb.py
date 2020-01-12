@@ -2,7 +2,7 @@
 Script to clean notebook's in various ways
 
 Use case:
- 
+
  for `skimage`-based image analysis course we'd like to have pre-filled
  notebooks for teaching, but "empty" ones (no code, with exception of %loads)
 
@@ -52,6 +52,52 @@ def restore(config):
         shutil.copy(backup, modified)
         logger.debug(f"restored {modified} from {backup}")
 
+
+@cli.command()
+@click.pass_obj
+def prepare4slides(config):
+    """Prepare notebooks for slides
+
+    * changes links to files from ../fig to ./fig
+    """
+    files = config["files"]
+    make_backup(files)
+    mod_files(files, _fix_fig_links)
+
+def _fix_fig_links(in_file):
+    with open(in_file, "r") as f:
+        content = json.load(f)
+
+    cells = content["cells"]
+
+    new_cells = []
+    for cell in cells:
+        new_cells.append(fig_point_to_current_folder(cell))
+
+    content["cells"] = new_cells
+    with open(in_file, "w") as f:
+        json.dump(content, f, indent=1)
+        f.write("\n")
+
+def fig_point_to_current_folder(cell):
+    if cell["cell_type"] != "markdown":
+        return cell
+
+    has_load_image = re.compile("!\[.*\]\((?P<filename>.+)\)")
+
+    new_lines = []
+    for line in cell["source"]:
+        m = has_load_image.match(line)
+        if m is not None:
+            fname = m.groupdict()["filename"].replace("../", "./")
+            start, end = m.span("filename")
+            new_line = line[0:start] + fname + line[end:]
+            new_lines.append(new_line)
+        else:
+            new_lines.append(line)
+
+    cell["source"] = new_lines
+    return cell
 
 @cli.command()
 @click.pass_obj
