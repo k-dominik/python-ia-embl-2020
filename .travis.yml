@@ -39,32 +39,26 @@ install:
   - conda activate testenv
   - conda install -c conda-forge pytest-notebook
 
-jobs:
-  include:
-    - stage: regression-test
-      name: "Run notebooks - no checking of output is done."
-      script:
-        - conda activate testenv
-        - python clean-ipnb.py ./notebooks prepare4test
-        - xvfb-run -a pytest -v --nb-test-files --nb-exec-timeout=30
+script:
+  - conda activate testenv
+  - python clean-ipnb.py ./notebooks prepare4test
+  - xvfb-run -a pytest -v --nb-test-files --nb-exec-timeout=30
 
-    - stage: deploy-clean
-      name: "Remove code from notebooks, remove unnecessary files, deploy to github"
-      script:
-        - ls
-        - conda activate -n testenv
-        - python clean-ipnb.py ./notebooks delcode
-        - git clean --force
-        - find . -maxdepth 1 -type f -exec rm -iv {} \;
-        - cp deploy/* .
-        - git add .
-        - git commit -m "cleanup for deploy"
-        - git log
-      deploy:
-        provider: pages
-        target_branch: course-material
-        # on:
-        #   branch: master
-        on:
-          all_branches: true
+before_deploy:
+  - ls
+  - conda activate testenv
+  - python clean-ipnb.py ./notebooks delcode
+  - git clean --force
+  - find . -maxdepth 1 -type f -exec rm -fv {} \;
+  - cp deploy/* .
+  - git add .
+  - git commit -m "cleanup for deploy"
+  - git log
+deploy:
+  provider: pages
+  target_branch: course-material
+  # on:
+  #   branch: master
+  on:
+    all_branches: true
 
