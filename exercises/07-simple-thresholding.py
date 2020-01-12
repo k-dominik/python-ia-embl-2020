@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # we want to look at grayscale histograms
 def plot_histogram(image):
     
-    histogram, bin_edges = np.histogram(image[mask], bins = 256, range = (0,1))
+    histogram, bin_edges = np.histogram(image, bins = 256, range = (0,1))
     plt.plot(bin_edges[:-1], histogram, color = 'k')
     
     plt.xlabel('Pixel value')
