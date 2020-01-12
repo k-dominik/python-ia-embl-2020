@@ -47,6 +47,8 @@ script:
 before_deploy:
   - ls
   - conda activate testenv
+  # restore after test loaded automagics
+  - python clean-ipnb.py ./notebooks restore
   - python clean-ipnb.py ./notebooks delcode
   - git clean --force
   - find . -maxdepth 1 -type f -exec rm -fv {} \;
@@ -57,6 +59,7 @@ before_deploy:
 deploy:
   provider: pages
   target_branch: course-material
+  github_token: $GITHUB_TOKEN
   # on:
   #   branch: master
   on:
